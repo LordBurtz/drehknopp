@@ -16,11 +16,16 @@ struct ContentView: View {
     let offsetDgr = 60.0
     let multiplier = 1.5
     let angle = 1.07
+    let initialCircleRadius: CGFloat = 65
+    let finalCircleRadius: CGFloat = 150
     
     @State private var isOn = false
     @State private var volObserver = VolumeObserver()
     
     @EnvironmentObject var motion: MotionManager
+    
+    // animation properties
+    @State private var circleRadius: CGFloat
     
     var normalizedRoll: CGFloat {
         ((motion.fx + angle) / (angle * 2)).clampedTo(0...1)
@@ -41,6 +46,7 @@ struct ContentView: View {
     
     init() {
         try? AVAudioSession.sharedInstance().setActive(true)
+        circleRadius = initialCircleRadius
     }
     
     var body: some View {
@@ -53,6 +59,7 @@ struct ContentView: View {
         }
         .frame(maxHeight: .infinity)
         .background(self.background)
+        .background(Color.black)
         .padding()
         .onChange(of: tiltPercent, initial: false) { old, new in
             if isOn {
@@ -77,18 +84,26 @@ struct ContentView: View {
     var bottomPart: some View {
         Button(action: {
             isOn = false
+            withAnimation(.linear(duration: 0.5)) {
+                circleRadius = initialCircleRadius
+            }
         }) {
-            Text(isOn ? "Stop" : "Start")
-                .font(.headline)
-                .padding()
+            Circle()
+                .fill(Color.gray)
+                .frame(width: circleRadius, height: circleRadius)
                 .background {
-                    RoundedRectangle(cornerRadius: 12).fill(Color.gray.opacity(0.5))
+                    Circle()
+                        .stroke(Color.gray, lineWidth: 4)
+                        .frame(width: finalCircleRadius, height: finalCircleRadius)
                 }
         }
         .simultaneousGesture(LongPressGesture(minimumDuration: 0.05).onEnded { _ in
             let impactMed = UIImpactFeedbackGenerator(style: .medium)
             impactMed.impactOccurred()
             isOn = true
+            withAnimation(.linear(duration: 3)) {
+                circleRadius = finalCircleRadius
+            }
         })
     }
     
