@@ -6,4 +6,6 @@ Do you ever miss the old days of turning a knob or are too pumped after climbing
 ### yey I needed that  :)
 
 ## Short exhibition:
-
+![le loading screen](https://github.com/LordBurtz/drehknopp/blob/master/.repoassets/IMG_1713.PNG)  
+![inactive state](https://github.com/LordBurtz/drehknopp/blob/master/.repoassets/IMG_1712.PNG)
+![le activate state \(press to activate)](https://github.com/LordBurtz/drehknopp/blob/master/.repoassets/IMG_1715-ann.PNG)
