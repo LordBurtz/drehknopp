@@ -11,7 +11,11 @@ import SwiftUI
 struct drehknoppApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            let motionManager = MotionManager()
+            
+            ContentView().environmentObject(motionManager)
         }
     }
 }
+
+
