@@ -15,31 +15,28 @@ struct ContentView: View {
     let pi = 3.14159
     let offsetDgr = 60.0
     let multiplier = 1.5
+    let angle = 1.07
     
-    @State private var isOn = true
+    @State private var isOn = false
     @State private var volObserver = VolumeObserver()
     
     @EnvironmentObject var motion: MotionManager
     
-    var rawFillDegree: CGFloat {
-        motion.fx * (180 / pi)
+    var normalizedRoll: CGFloat {
+        ((motion.fx + angle) / (angle * 2)).clampedTo(0...1)
     }
     
-    var adjustedFillDegree: CGFloat {
-        !isOn ? systemFillDegree :
-            rawFillDegree * multiplier + offsetDgr
+    var tiltPercent: CGFloat {
+        if isOn {
+            normalizedRoll
+        } else {
+            volObserver.volume
+        }
+        
     }
     
-    var fillPercent: CGFloat {
-        min(0.5, adjustedFillDegree / 360)
-    }
-    
-    var fillPercentOf180: CGFloat {
-        min(1.0, adjustedFillDegree / 180)
-    }
-    
-    var systemFillDegree: CGFloat {
-        volObserver.volume * 360
+    var tiltPercentHalfed: CGFloat {
+        tiltPercent / 2
     }
     
     init() {
@@ -47,28 +44,17 @@ struct ContentView: View {
     }
     
     var body: some View {
-        ZStack {
-            VStack {
-                VStack {
-                    Text(String(format: "%.1f", fillPercentOf180 * 100.0) + " %")
-                        .font(.largeTitle)
-                    Button(action: {
-                        isOn = !isOn
-                    }) {
-                        
-                    }
-                }
-            }
-            .padding()
+        VStack {
+            topPart
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            Circle()
-                .trim(from: 0, to: fillPercent)
-                .stroke(Grads.darkPizelex, lineWidth: 30)
-                .rotationEffect(Angle(degrees: 180))
-                .animation(Animation.linear(duration: 0.1), value: fillPercent)
+            bottomPart
+                .frame(maxHeight: .infinity)
         }
+        .frame(maxHeight: .infinity)
+        .background(self.background)
         .padding()
-        .onChange(of: fillPercentOf180, initial: false) { old, new in
+        .onChange(of: tiltPercent, initial: false) { old, new in
             if isOn {
                 SystemPlayerBridge.setVolume(Float(new))
             }
@@ -78,7 +64,40 @@ struct ContentView: View {
                 try? await SystemPlayerBridge.startPlaybackEventually()
             }
         }
-        
+    }
+    
+    var topPart: some View {
+        VStack() {
+            Spacer()
+            Text(String(format: "%.1f", tiltPercent * 100.0) + " %")
+                .font(.largeTitle)
+        }
+    }
+    
+    var bottomPart: some View {
+        Button(action: {
+            isOn = false
+        }) {
+            Text(isOn ? "Stop" : "Start")
+                .font(.headline)
+                .padding()
+                .background {
+                    RoundedRectangle(cornerRadius: 12).fill(Color.gray.opacity(0.5))
+                }
+        }
+        .simultaneousGesture(LongPressGesture(minimumDuration: 0.05).onEnded { _ in
+            let impactMed = UIImpactFeedbackGenerator(style: .medium)
+            impactMed.impactOccurred()
+            isOn = true
+        })
+    }
+    
+    var background: some View {
+        Circle()
+            .trim(from: 0, to: tiltPercentHalfed)
+            .stroke(Grads.darkPizelex, lineWidth: 30)
+            .rotationEffect(Angle(degrees: 180))
+            .animation(Animation.linear(duration: 0.1), value: tiltPercentHalfed)
     }
 }
 

@@ -28,9 +28,9 @@ final class VolumeObserver: ObservableObject {
         
         progressObserver = session.observe(\.outputVolume) { [self] (session, value) in
             DispatchQueue.main.async {
-                print("before: \(self.volume)")
+//                print("before: \(self.volume)")
                 self.volume = CGFloat(session.outputVolume)
-                print("after: \(self.volume)")
+//                print("after: \(self.volume)")
             }
         }
     }

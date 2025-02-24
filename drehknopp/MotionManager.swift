@@ -6,6 +6,7 @@
 //
 
 import CoreMotion
+import SwiftUICore
 
 class MotionManager: ObservableObject {
     private let motionManager = CMMotionManager()
@@ -18,11 +19,16 @@ class MotionManager: ObservableObject {
     var dy: Double = 0
     var dz: Double = 0
     
+    var normalizedRoll: CGFloat {
+        ((fx + 1.4) / 2.8).clampedTo(0...1)
+    }
+    
     init() {
         motionManager.startDeviceMotionUpdates(to: .main) { data, error in
             guard let attitude = data?.attitude else { return }
             
             self.dx = attitude.roll
+//            print("dx: \(self.dx)")
             self.dy = attitude.pitch
             self.dz = attitude.yaw
 
@@ -36,5 +42,11 @@ class MotionManager: ObservableObject {
     
     func shutdown() {
         motionManager.stopDeviceMotionUpdates()
+    }
+}
+
+extension CGFloat {
+    func clampedTo(_ range: ClosedRange<CGFloat>) -> CGFloat {
+        return Self.minimum(Self.maximum(self, range.lowerBound), range.upperBound)
     }
 }
